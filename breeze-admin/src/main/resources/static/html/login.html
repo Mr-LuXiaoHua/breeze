@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" lang="zh_cn">
+    <meta name="viewport" content="width=device-width">
+    <title>微风管理系统</title>
+
+    <link rel="stylesheet" href="../zui/css/zui.min.css">
+    <link rel="stylesheet" href="../zui/css/blue.css">
+    <link rel="stylesheet" href="../zui/css/app.css">
+
+    <script>
+        if(self!=top){top.location.href=self.location.href;}
+    </script>
+
+</head>
+
+<body class="bg-default">
+
+
+
+<div class="page page-login text-center" style="padding-top: 200px">
+    <div class="panel">
+        <div class="panel-body">
+            <div class="logo">
+                <a href="#">微风管理系统</a>
+            </div>
+            <form>
+                <div class="form-group">
+                    <input type="text" id="username" class="form-control" placeholder="账号">
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" class="form-control" placeholder="密码">
+                </div>
+                <div class="alert alert-danger with-icon" style="display: none"  id="msgDiv">
+                </div>
+                <button type="button" id="btnSubmit" class="btn btn-lg btn-primary btn-block" onclick="doLogin()">登录</button>
+            </form>
+        </div>
+    </div>
+    <footer class="page-copyright page-copyright-inverse">
+        <p>© Copyright, 一枕清风</p>
+    </footer>
+</div>
+
+
+
+
+
+<script src="../zui/lib/jquery/jquery.js"></script>
+<script src="../zui/js/zui.min.js"></script>
+
+<script>
+
+    function doLogin() {
+        $("#msgDiv").html("");
+        $("#msgDiv").hide();
+        let username = $("#username").val();
+        let password = $("#password").val();
+        if (username == '') {
+            $("#msgDiv").html("请输入用户名");
+            $("#msgDiv").show();
+            return;
+        }
+        if (password == '') {
+            $("#msgDiv").html("请输入密码");
+            $("#msgDiv").show();
+            return;
+        }
+
+
+        let data = {
+            "username": username,
+            "password": password
+        }
+
+        let url = "/login";
+        $("#btnSubmit").attr("disabled", "disabled");
+        $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: url,
+            contentType: "application/json;charset=UTF-8",
+            data: JSON.stringify(data),
+            success: function(result) {
+                $("#btnSubmit").removeAttr("disabled");
+                if (result.code != 0) {
+                    $("#msgDiv").html(result.message);
+                    $("#msgDiv").show();
+                } else {
+
+                    let json = JSON.stringify(result.data);
+                    console.log(json);
+                    sessionStorage.setItem("LOGIN_INFO", json);
+                    window.location.href = "index.html";
+                }
+            }
+        });
+    }
+
+</script>
+
+</body>
+</html>

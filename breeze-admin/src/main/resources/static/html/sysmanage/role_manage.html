@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" lang="zh_cn">
+    <meta name="viewport" content="width=device-width">
+    <title>角色管理</title>
+
+    <link rel="stylesheet" href="../../zui/css/zui.min.css">
+    <link rel="stylesheet" href="../../zui/css/blue.css">
+
+    <link rel="stylesheet" href="../../ztree/css/demo.css" type="text/css">
+    <link rel="stylesheet" href="../../ztree/css/zTreeStyle/zTreeStyle.css">
+</head>
+
+<body>
+
+
+
+<div class="container-fluid">
+
+
+    <div class="table-tools" style="margin-top: 15px">
+
+        <div class="tools-group">
+
+            <button type="button" id="btnAdd" class="btn btn-primary" onclick="showAddModal()">新增</button>
+        </div>
+    </div>
+    <table class="table table-bordered" class="table-tools" style="margin-top: 10px">
+        <thead>
+        <tr>
+            <th width="30">
+                <input type="checkbox">
+            </th>
+            <th>角色名称</th>
+            <th>角色编码</th>
+            <th>状态</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="tableContent">
+
+        </tbody>
+    </table>
+
+    <ul id="myPager" class="pager"></ul>
+
+
+</div>
+
+
+
+
+
+<!--对话框-->
+<div class="modal modal-for-page fade in" id="myModal" aria-hidden="false" style="display: none;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">关闭</span></button>
+                <h4 class="modal-title" id="modelTitle"></h4>
+            </div>
+            <div class="modal-body" style="height: 400px; overflow: visible;">
+
+                <form class="form-horizontal" id="addForm">
+                    <input type="hidden" name="id" id="id">
+                    <div class="form-group">
+                        <label for="name" class="col-sm-2">角色名称</label>
+                        <div class="col-md-6 col-sm-10">
+                            <input type="text" class="form-control" id="name" name="name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="code" class="col-sm-2">角色编码</label>
+                        <div class="col-md-6 col-sm-10">
+                            <input type="text" class="form-control" id="code" name="code">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label  class="col-sm-2">状态</label>
+                        <div class="col-md-6 col-sm-10">
+                            <input type="radio" name="status" value="0">停用 &nbsp;&nbsp;&nbsp;
+                            <input type="radio" name="status" value="1">启用 &nbsp;&nbsp;&nbsp;
+                        </div>
+                    </div>
+
+
+                </form>
+
+
+            </div>
+            <div class="modal-footer">
+                <div class="alert alert-danger with-icon" style="display: none" id="msgDiv">
+                    <i class="icon-remove-sign"></i>
+                    <div class="content text-left" id="tips" ></div>
+                </div>
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnSubmit" onclick="doSubmit()">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!--分配资源权限-->
+<div class="modal modal-for-page fade in" id="assignModal" aria-hidden="false" style="display: none;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">关闭</span></button>
+                <h4 class="modal-title">分配资源</h4>
+            </div>
+            <div class="modal-body" style="height: 400px; overflow: visible;">
+                <input type="hidden" id="roleId" name="roleId">
+                <form class="form-horizontal" id="roleForm">
+                    <div class="form-group">
+                        <label for="treeDemo" class="col-sm-2">选择资源</label>
+                        <div class="col-md-6 col-sm-10">
+                            <ul id="treeDemo" class="ztree" style="width:300px; overflow:auto;"></ul>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <div class="alert alert-danger with-icon" style="display: none" id="assignMsgDiv">
+                    <i class="icon-remove-sign"></i>
+                    <div class="content text-left" id="assignTips" ></div>
+                </div>
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnAssign" onclick="doAssignResource()">确定</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<script src="../../zui/lib/jquery/jquery.js"></script>
+<script src="../../zui/js/zui.min.js"></script>
+<script src="../../zui/js/app.js"></script>
+<script src="../../script/common.js"></script>
+
+<script src="../../ztree/js/jquery.ztree.core.min.js"></script>
+<script src="../../ztree/js/jquery.ztree.excheck.min.js"></script>
+
+<script>
+
+
+    if(!hasPrivilege(resource_code_config.role_manage_add)) {
+        $("#btnAdd").hide();
+    }
+
+
+    // 分页查询url
+    let pageListUrl = "/role/page-list";
+
+    $(window).load(function (){
+        pageQuery(pageListUrl, 1, 10);
+    });
+
+
+
+    /**
+     * 渲染表格
+     * @param result
+     */
+    function applyTable(result) {
+        $("#tableContent").html('');
+        if (result.code != 0) {
+            console.error(result.message);
+            return;
+        }
+        let html = "";
+        $.each(result.data.recordList, function (index, item){
+            let tr = "<tr>";
+            let td = "<td>" + "<input type='checkbox' value='" + item.id + "'>" + "</td>";
+            td += "<td>" + item.name + "</td>";
+            td += "<td>" + item.code + "</td>";
+
+            if (item.status == 0) {
+                td += "<td>停用</td>";
+            } else {
+                td += "<td>正常</td>";
+            }
+
+            if (item.id == 1) {
+                td += "<td></td>";
+            } else {
+                td += "<td>";
+                if(hasPrivilege(resource_code_config.role_manage_add)) {
+                    td += "<a href='#' class='btn btn-xs btn btn-success' onclick='showEditModal("+ item.id+")'>编辑</a>";
+                }
+                if(hasPrivilege(resource_code_config.role_manage_delete)) {
+                    td += "&nbsp;&nbsp;<a href='#' class='btn btn-xs btn-danger' onclick='doDelete("+ item.id +")'>删除</a>";
+                }
+                if(hasPrivilege(resource_code_config.role_manage_assign_resource)) {
+                    td += "&nbsp;&nbsp;<a href='#' class='btn btn-xs btn-warning' onclick='showAssignModal("+ item.id +")'>分配资源</a>";
+                }
+                td += "</td>";
+            }
+
+
+            tr += td;
+            tr += "</tr>";
+
+            html += tr;
+        });
+        $("#tableContent").append(html);
+    }
+
+
+   /**
+    * 打开新增对话框
+    */
+   function showAddModal(){
+        $("#modelTitle").html("新增角色");
+        $("#id").val("");
+        $('#myModal').modal({
+            keyboard : false,
+            show     : true,
+            backdrop : 'static'
+        });
+   }
+
+
+    /**
+     * 打开编辑对话框
+     * @param id
+     */
+    function showEditModal(id){
+        $("#modelTitle").html("编辑机构");
+        $('#myModal').modal({
+            keyboard : false,
+            show     : true,
+            backdrop : 'static'
+        });
+
+        let data = {"id": id};
+        let url = "/role/detail";
+
+
+        let resultHandleFun = function(result) {
+            if (result.code != 0) {
+                $("#tips").html(result.message);
+                $("#msgDiv").show();
+                return;
+            }
+            $("#id").val(result.data.id);
+            $("#name").val(result.data.name);
+            $("#code").val(result.data.code);
+            $("input[type=radio][name=status][value="+ result.data.status +"]").attr("checked",true);
+        }
+
+        doHttpRequest(url, data, resultHandleFun);
+
+
+    }
+
+
+    /**
+     * 新增/编辑提交
+     */
+    function doSubmit() {
+        $("#msgDiv").hide();
+        $("#btnSubmit").attr("disabled", "disabled");
+        let fields = $('#addForm').serializeArray();
+        let data = serializeArrayToJson(fields);
+
+        let url = "/role/add";
+        if (data.id != "") {
+            url = "/role/edit";
+        }
+
+        let resultHandleFun = function(result) {
+            $("#btnSubmit").removeAttr("disabled");
+            if (result.code != 0) {
+                $("#tips").html(result.message);
+                $("#msgDiv").show();
+            } else {
+                window.alert("操作成功");
+                $('#myModal').modal('hide');
+                pageQuery(pageListUrl, 1, 10);
+            }
+        }
+
+        doHttpRequest(url, data, resultHandleFun);
+
+    }
+
+
+    /**
+     * 删除数据
+     * @param id 数据标识
+     */
+    function doDelete(id) {
+        let url = "/role/delete";
+        let data = {
+            "id": id
+        }
+
+        let resultHandleFun = function(result) {
+            if (result.code != 0) {
+                window.alert(result.message);
+            } else {
+                pageQuery(pageListUrl, 1, 10);
+            }
+        }
+
+        doHttpRequest(url, data, resultHandleFun);
+
+    }
+
+
+
+
+    /**
+     * 打开分配资源窗口
+     * @param userId
+     */
+    function showAssignModal(roleId){
+
+        $("#roleId").val(roleId);
+        $('#assignModal').modal({
+            keyboard : false,
+            show     : true,
+            backdrop : 'static'
+        });
+
+        let setting = {
+            check: {
+                enable: true
+            },
+            data: {
+                simpleData: {
+                    enable: true,
+                    pIdKey: "pid"
+                }
+            }
+        };
+
+        let url = "/role-resource/list"
+        let data = {
+            "roleId": roleId
+        }
+
+        let resultHandleFun = function(result) {
+            if (result.code != 0) {
+                $("#assignTips").html(result.message);
+                $("#assignMsgDiv").show();
+            } else {
+                let zNodes = result.data;
+                $.fn.zTree.init($("#treeDemo"), setting, zNodes);
+            }
+        }
+
+        doHttpRequest(url, data, resultHandleFun);
+
+
+
+    }
+
+
+    /**
+     * 分配资源
+     */
+    function doAssignResource() {
+        $("#assignMsgDiv").hide();
+        let treeObj = $.fn.zTree.getZTreeObj("treeDemo");
+        let nodes = treeObj.getCheckedNodes(true);
+        if (nodes == 'undefined' || nodes.length == 0) {
+            $("#assignTips").html("请选择要分配的资源");
+            $("#assignMsgDiv").show();
+            return;
+        }
+
+        let resIdArr = [];
+        $.each(nodes, function(index, item){
+            resIdArr.push(item.id);
+        });
+
+        $("#btnAssign").attr("disabled", "disabled");
+
+
+        let data = {
+            "roleId": $("#roleId").val(),
+            "resIds": resIdArr
+        }
+
+        let url = "/role-resource/add"
+
+        let resultHandleFun = function(result) {
+            $("#btnAssign").removeAttr("disabled");
+            if (result.code != 0) {
+                $("#assignTips").html(result.message);
+                $("#assignMsgDiv").show();
+            } else {
+                window.alert("操作成功");
+                $('#assignModal').modal('hide');
+            }
+        }
+
+        doHttpRequest(url, data, resultHandleFun);
+
+
+    }
+
+
+
+
+</script>
+
+
+</body>
+</html>

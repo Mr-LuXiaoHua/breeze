@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>微风管理系统</title>
+
+    <link rel="stylesheet" href="../zui/css/zui.min.css">
+    <link rel="stylesheet" href="../zui/lib/tabs/zui.tabs.min.css">
+    <link rel="stylesheet" href="../zui/css/blue.css">
+    <link rel="stylesheet" href="../zui/css/app.css">
+
+    <script>
+        if(self!=top){top.location.href=self.location.href;}
+    </script>
+
+</head>
+<body>
+<div class="wrapper">
+    <header class="main-header">
+        <nav class="navbar navbar-fixed-top bg-primary">
+            <div class="navbar-header">
+                <a class="navbar-toggle" href="javascript:;" data-toggle="collapse" data-target=".navbar-collapse"><i class="icon icon-th-large"></i></a>
+                <a class="sidebar-toggle" href="javascript:;" data-toggle="push-menu"><i class="icon icon-bars"></i></a>
+                <a class="navbar-brand" href="#">
+                    <span class="logo">微风管理系统</span>
+                    <span class="logo-mini">ZA</span>
+                </a>
+            </div>
+            <div class="collapse navbar-collapse">
+                <div class="container-fluid">
+                    <ul class="nav navbar-nav">
+                        <li><a href="javascript:;" data-toggle="push-menu"><i class="icon icon-bars"></i></a></li>
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+
+                        <li class="dropdown">
+                            <a href="javascript:;" data-toggle="dropdown"><i class="icon icon-user"></i><span id="spanNickname"></span> <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="javascript:void(0);" onclick="showMyModal()">修改密码</a></li>
+                                <li class="divider"></li>
+                                <li><a href="javascript:void(0);" onclick="doLogout()">注销</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <aside class="main-sidebar">
+        <section class="sidebar">
+            <ul class="sidebar-menu" data-widget="tree" id="ulTree">
+
+              <!--  <li class="treeview" id="sys_manage">
+                    <a href="javascript:;">
+                        <i class="icon icon-database"></i>
+                        <span>系统管理</span>
+                        <span class="pull-right-container">
+                                <i class="icon icon-angle-left"></i>
+                            </span>
+                    </a>
+                    <ul class="treeview-menu" id="sys_manage_menu">
+                        <li><a href="javascript:;" onclick="addTab('org_manage','机构管理', 'sysmanage/org_manage.html', false)"><i class="icon"></i>机构管理</a></li>
+                        <li><a href="javascript:;" onclick="addTab('res_manage','资源管理', 'sysmanage/res_manage.html', false)"><i class="icon"></i>资源管理</a></li>
+                        <li><a href="javascript:;" onclick="addTab('role_manage','角色管理', 'sysmanage/role_manage.html?v=1.02', false)"><i class="icon"></i>角色管理</a></li>
+                        <li><a href="javascript:;" onclick="addTab('user_manage','用户管理', 'sysmanage/user_manage.html?v=1.0.1', false)"><i class="icon"></i>用户管理</a></li>
+                    </ul>
+
+                </li>-->
+               <!-- <li class="treeview">
+                    <a href="javascript:;">
+                        <i class="icon icon-columns"></i>
+                        <span>基础组件</span>
+                        <span class="pull-right-container">
+                                <i class="icon icon-angle-left"></i>
+                            </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="component-checkbox-radio.html"><i class="icon icon-circle-blank"></i> 多选和单选框</a></li>
+                        <li><a href="component-step.html"><i class="icon icon-circle-blank"></i> 步骤条</a></li>
+                    </ul>
+                </li>
+                <li class="treeview">
+                    <a href="javascript:;">
+                        <i class="icon icon-sign-blank"></i>
+                        <span>扩展插件</span>
+                        <span class="pull-right-container">
+                                <i class="icon icon-angle-left"></i>
+                            </span>
+                    </a>
+                    <ul class="treeview-menu">
+                        <li><a href="plugin-toastr.html"><i class="icon icon-circle-blank"></i> Toastr</a></li>
+                        <li><a href="plugin-notify.html"><i class="icon icon-circle-blank"></i> Notify</a></li>
+                    </ul>
+                </li>-->
+            </ul>
+        </section>
+    </aside>
+    <div class="content-wrapper" style="height: 100%">
+      <!--  <div class="content-header">
+            <ul class="breadcrumb">
+                <li><a href="#"><i class="icon icon-home"></i></a></li>
+                <li class="active">空白页</li>
+            </ul>
+        </div>-->
+       <!-- <div class="content-body">
+            <div class="container-fluid">
+                <div class="tabs" id="tabsExample"></div>
+            </div>
+        </div>-->
+        <div class="tabs" id="tabsExample"></div>
+
+    </div>
+
+</div>
+
+
+
+
+<!--对话框-->
+<div class="modal modal-for-page fade in" id="myModal" aria-hidden="false" style="display: none;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">关闭</span></button>
+                <h4 class="modal-title" id="modelTitle">修改密码</h4>
+            </div>
+            <div class="modal-body" style="height: 400px; overflow: visible;">
+
+                <form class="form-horizontal" id="addForm">
+                    <input type="hidden" name="id" id="id">
+                    <div class="form-group">
+                        <label for="oldPassword" class="col-sm-2">原密码</label>
+                        <div class="col-md-6 col-sm-10">
+                            <input type="password" class="form-control" id="oldPassword" name="oldPassword">
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="divPassword">
+                        <label for="password" class="col-sm-2">新密码</label>
+                        <div class="col-md-6 col-sm-10">
+                            <input type="password" class="form-control" id="password" name="password">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword" class="col-sm-2">确认新密码</label>
+                        <div class="col-md-6 col-sm-10">
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword">
+                        </div>
+                    </div>
+                </form>
+
+
+            </div>
+            <div class="modal-footer">
+                <div class="alert alert-danger with-icon" style="display: none" id="msgDiv">
+                    <i class="icon-remove-sign"></i>
+                    <div class="content text-left" id="tips" ></div>
+                </div>
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnSubmit" onclick="doSubmit()">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script src="../zui/lib/jquery/jquery.js"></script>
+<script src="../script/common.js"></script>
+<script src="../zui/js/zui.min.js"></script>
+<script src="../zui/js/app.js"></script>
+<script src="../zui/lib/tabs/zui.tabs.min.js"></script>
+
+<script>
+
+    $(function(){
+
+        // 初始化标签页
+        let tabs = [{
+            id: "index",
+            title: "首页",
+            url: "dashboard.html",
+            type: 'iframe',
+            forbidClose: true
+        }];
+        $('#tabsExample').tabs({tabs: tabs});
+        initMenu();
+
+    });
+
+
+
+
+    function initMenu() {
+        let loginInfo = getLoginInfo();
+        $("#spanNickname").html(loginInfo.nickname);
+
+        // 渲染菜单
+        let treeList = loginInfo.treeBeanList[0].childList;
+
+        let html = "";
+        $.each(treeList, function (index, item){
+
+            html += ' <li class="treeview"> <a href="javascript:;"> <i class="icon icon-database"></i>'
+            html += ' <span>'+item.name+'</span>';
+            html += ' <span class="pull-right-container"> <i class="icon icon-angle-left"></i> </span>  </a>';
+            html += ' <ul class="treeview-menu">';
+
+            $.each(item.childList, function (subIndex, subItem){
+                html += '<li><a href="javascript:;" onClick="addTab('+subItem.id+',\''+subItem.name+'\',\'' + subItem.url +'\', false)"><i className="icon"></i>'+subItem.name+'</a></li>'
+            });
+
+            html += ' </ul>';
+            html += ' </li>';
+        });
+
+        $("#ulTree").html(html);
+
+    }
+
+
+    /**
+     * 新增一个标签页
+     * @param id
+     * @param title
+     * @param url
+     * @param forbidClose 是否不显示关闭按钮，true-不显示; false-显示
+     * @returns {{id, title, type: string, forbidClose, url}}
+     */
+    function addTab(id, title, url, forbidClose) {
+        // 定义标签页
+        let tab = {
+            id: id,
+            title: title,
+            url: url,
+            type: 'iframe',
+            forbidClose: forbidClose
+        };
+        let myTabs = $("#tabsExample").data('zui.tabs');
+        myTabs.open(tab);
+        console.dir(myTabs);
+    }
+
+
+    function doLogout() {
+        let url = "/logout";
+        let data = {};
+
+        let handleResultFun = function(result) {
+            sessionStorage.clear();
+            window.location.href = "login.html";
+        }
+
+        doHttpRequest(url, data, handleResultFun);
+    }
+
+
+
+
+
+    /**
+     * 打开对话框
+     */
+    function showMyModal(){
+        $('#myModal').modal({
+            keyboard : false,
+            show     : true,
+            backdrop : 'static'
+        });
+    }
+
+    /**
+     * 提交
+     */
+    function doSubmit() {
+        $("#msgDiv").hide();
+
+        let fields = $('#addForm').serializeArray();
+        let data = serializeArrayToJson(fields);
+
+        if (data.oldPassword=='') {
+            $("#tips").html("请输入原密码");
+            $("#msgDiv").show();
+            return;
+        }
+
+        if (data.password=='') {
+            $("#tips").html("请输入新密码");
+            $("#msgDiv").show();
+            return;
+        }
+
+        if (data.password != data.confirmPassword) {
+            $("#tips").html("两次输入的新密码不一致");
+            $("#msgDiv").show();
+            return;
+        }
+
+        let url = "/user/modify-password";
+
+        $("#btnSubmit").attr("disabled", "disabled");
+        let resultHandleFun = function(result) {
+            $("#btnSubmit").removeAttr("disabled");
+            if (result.code != 0) {
+                $("#tips").html(result.message);
+                $("#msgDiv").show();
+            } else {
+                window.alert("操作成功");
+                $("#divPassword").show();
+                $('#myModal').modal('hide');
+                window.location.href = "login.html";
+            }
+        }
+
+        doHttpRequest(url, data, resultHandleFun);
+
+    }
+
+
+
+
+
+
+</script>
+
+
+</body>
+</html>

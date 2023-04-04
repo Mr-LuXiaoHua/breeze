@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" lang="zh_cn">
+    <meta name="viewport" content="width=device-width">
+    <title>机构管理</title>
+
+    <link rel="stylesheet" href="../../zui/css/zui.min.css">
+    <link rel="stylesheet" href="../../zui/css/blue.css">
+</head>
+
+<body>
+
+
+
+<div class="container-fluid">
+
+
+    <div class="table-tools" style="margin-top: 15px">
+      <!--  <div class="pull-right" style="width: 250px;">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="关键字">
+                <span class="input-group-btn">
+                                            <button class="btn btn-default" type="button">搜索</button>
+                                        </span>
+            </div>
+        </div>-->
+        <div class="tools-group">
+          <!--  <a href="#" class="btn btn-primary"><i class="icon icon-plus-sign"></i> 新增</a>
+
+            <a href="#" class="btn btn-success"><i class="icon icon-check-circle"></i> 启用</a>
+            <a href="#" class="btn btn-warning"><i class="icon icon-ban-circle"></i> 禁用</a>
+            <a href="#" class="btn btn-danger"><i class="icon icon-remove-sign"></i> 删除</a>-->
+            <button type="button" id="btnAdd" class="btn btn-primary" onclick="showAddModal()">新增</button>
+        </div>
+    </div>
+    <table class="table table-bordered" class="table-tools" style="margin-top: 10px">
+        <thead>
+        <tr>
+            <th width="30">
+                <input type="checkbox">
+            </th>
+            <th>机构名称</th>
+            <th>机构编码</th>
+            <th>上级机构</th>
+            <th>排序</th>
+            <th>操作</th>
+        </tr>
+        </thead>
+        <tbody id="tableContent">
+
+        </tbody>
+    </table>
+
+    <ul id="myPager" class="pager"></ul>
+
+
+</div>
+
+
+
+
+
+<!--对话框-->
+<div class="modal modal-for-page fade in" id="myModal" aria-hidden="false" style="display: none;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">×</span><span class="sr-only">关闭</span></button>
+                <h4 class="modal-title" id="modelTitle"></h4>
+            </div>
+            <div class="modal-body" style="height: 400px; overflow: visible;">
+
+                <form class="form-horizontal" id="addForm">
+                    <input type="hidden" name="id" id="id">
+                    <div class="form-group">
+                        <label for="name" class="col-sm-2">机构名称</label>
+                        <div class="col-md-6 col-sm-10">
+                            <input type="text" class="form-control" id="name" name="name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="code" class="col-sm-2">机构编码</label>
+                        <div class="col-md-6 col-sm-10">
+                            <input type="text" class="form-control" id="code" name="code">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="code" class="col-sm-2">上级机构</label>
+                        <div class="col-md-6 col-sm-10">
+                            <select id="treeSelect" class="form-control" name="parentId">
+                                <option value="">-请选择-</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="orderNum" class="col-sm-2">排序</label>
+                        <div class="col-md-6 col-sm-10">
+                            <input type="number" class="form-control" id="orderNum" name="orderNum">
+                        </div>
+                    </div>
+                </form>
+
+
+            </div>
+            <div class="modal-footer">
+                <div class="alert alert-danger with-icon" style="display: none" id="msgDiv">
+                    <i class="icon-remove-sign"></i>
+                    <div class="content text-left" id="tips" ></div>
+                </div>
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="btnSubmit" onclick="doSubmit()">确定</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+<script src="../../zui/lib/jquery/jquery.js"></script>
+<script src="../../zui/js/zui.min.js"></script>
+<script src="../../zui/js/app.js"></script>
+<script src="../../script/common.js?v=1.0.0"></script>
+
+<script>
+
+    if(!hasPrivilege(resource_code_config.org_manage_add)) {
+        $("#btnAdd").hide();
+    }
+
+
+
+    // 分页查询url
+    let pageListUrl = "/organization/page-list";
+
+    $(window).load(function (){
+        pageQuery(pageListUrl, 1, 10);
+    });
+
+
+
+
+    /**
+     * 渲染表格
+     * @param result
+     */
+    function applyTable(result) {
+        $("#tableContent").html('');
+        if (result.code != 0) {
+            console.error(result.message);
+            return;
+        }
+        let html = "";
+        $.each(result.data.recordList, function (index, item){
+            let tr = "<tr>";
+            let td = "<td>" + "<input type='checkbox' value='" + item.id + "'>" + "</td>";
+            td += "<td>" + item.name + "</td>";
+            td += "<td>" + item.code + "</td>";
+            td += "<td>" + item.parentName + "</td>";
+            td += "<td>" + item.orderNum + "</td>";
+
+            if (item.parentId == 0) {
+                td += "<td></td>";
+            } else {
+                td += "<td>";
+                if(hasPrivilege(resource_code_config.org_manage_edit)) {
+                    td += "<a href='#' class='btn btn-xs btn btn-success' onclick='showEditModal("+ item.id+")'>编辑 </a>";
+                }
+                if(hasPrivilege(resource_code_config.org_manage_delete)) {
+                    td += "&nbsp;&nbsp;<a href='#' class='btn btn-xs btn-danger' onclick='doDelete("+ item.id +")'>删除</a>";
+                }
+                td += "</td>";
+            }
+
+
+            tr += td;
+            tr += "</tr>";
+
+            html += tr;
+        });
+        $("#tableContent").append(html);
+    }
+
+
+   /**
+    * 打开新增对话框
+    */
+    function showAddModal(){
+        $("#modelTitle").html("新增机构");
+        $("#id").val("");
+        $('#myModal').modal({
+            keyboard : false,
+            show     : true,
+            backdrop : 'static'
+        });
+
+        let url = "/organization/tree";
+        let data = {};
+        let resultHandleFun = function(result) {
+            let html = "<option value=''>-请选择-</option>";
+            $.each(result.data, function (index, item){
+                let option = "<option value='"+ item.id +"'>" + item.name + "</option>";
+                html += option;
+            });
+            $("#treeSelect").html(html);
+        }
+        doHttpRequest(url, data, resultHandleFun);
+
+    }
+
+
+    /**
+     * 打开编辑对话框
+     * @param id
+     */
+    function showEditModal(id){
+        $("#modelTitle").html("编辑机构");
+        $('#myModal').modal({
+            keyboard : false,
+            show     : true,
+            backdrop : 'static'
+        });
+
+        let data = {"id": id};
+        let url = "/organization/detail";
+
+        let resultHandleFun = function(result) {
+            if (result.code != 0) {
+                $("#tips").html(result.message);
+                $("#msgDiv").show();
+                return;
+            }
+            $("#id").val(result.data.id);
+            $("#name").val(result.data.name);
+            $("#code").val(result.data.code);
+            $("#orderNum").val(result.data.orderNum);
+
+
+            let html = "<option value=''>-请选择-</option>";
+            $.each(result.data.treeList, function (index, item){
+                let option;
+                if (item.id == result.data.parentId) {
+                    option = "<option selected value='"+ item.id +"'>" + item.name + "</option>";
+                } else {
+                    option = "<option value='"+ item.id +"'>" + item.name + "</option>";
+                }
+                html += option;
+            });
+            $("#treeSelect").html(html);
+        }
+
+        doHttpRequest(url, data, resultHandleFun);
+
+
+
+    }
+
+
+    /**
+     * 新增/编辑提交
+     */
+    function doSubmit() {
+        $("#msgDiv").hide();
+        $("#btnSubmit").attr("disabled", "disabled");
+        let fields = $('#addForm').serializeArray();
+        let data = serializeArrayToJson(fields);
+
+        let url = "/organization/add";
+        if (data.id != "") {
+            url = "/organization/edit";
+        }
+
+        let resultHandleFun = function(result) {
+            $("#btnSubmit").removeAttr("disabled");
+            if (result.code != 0) {
+                $("#tips").html(result.message);
+                $("#msgDiv").show();
+            } else {
+                window.alert("操作成功");
+                $('#myModal').modal('hide');
+                pageQuery(pageListUrl, 1, 10);
+            }
+        }
+
+        doHttpRequest(url, data, resultHandleFun);
+
+
+    }
+
+
+    /**
+     * 删除数据
+     * @param id 数据标识
+     */
+    function doDelete(id) {
+        let url = "/organization/delete";
+        let data = {
+            "id": id
+        }
+
+        let resultHandleFun = function(result) {
+            if (result.code != 0) {
+                window.alert(result.message);
+            } else {
+                pageQuery(pageListUrl, 1, 10);
+            }
+        }
+
+        doHttpRequest(url, data, resultHandleFun);
+
+
+    }
+
+
+
+</script>
+
+
+</body>
+</html>

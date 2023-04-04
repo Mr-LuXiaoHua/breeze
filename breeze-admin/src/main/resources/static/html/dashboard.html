@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>首页</title>
+
+  <link rel="stylesheet" href="../zui/css/zui.min.css">
+  <link rel="stylesheet" href="../zui/css/blue.css">
+  <link rel="stylesheet" href="../zui/css/app.css">
+  <link href="../zui/lib/dashboard/zui.dashboard.min.css" rel="stylesheet">
+
+
+
+</head>
+
+<script src="../zui/lib/jquery/jquery.js"></script>
+<script src="../zui/js/zui.min.js"></script>
+<script src="../zui/js/app.js"></script>
+<script src="../zui/lib/dashboard/zui.dashboard.min.js"></script>
+<body>
+
+<div class="container-fluid">
+<div id="dashboard" class="dashboard dashboard-draggable" style="width: 98%; margin-top: 20px">
+  <section class="row">
+
+    <div class="col-md-5">
+      <div class="panel" data-id="5">
+        <div class="panel-heading">
+          <i class="icon icon-list"></i>
+          <span class="title">技术栈</span>
+        </div>
+        <div class="panel-body">
+          <table class="table table-bordered" class="table-tools" style="margin-top: 10px; margin-left: 10px; width: 97%">
+            <thead>
+            <tr>
+              <th>选项</th>
+              <th>技术</th>
+              <th>版本</th>
+            </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>开发框架</td>
+                <td>SpringBoot</td>
+                <td>2.4.10</td>
+              </tr>
+              <tr>
+                <td>数据库</td>
+                <td>MySQL</td>
+                <td>8.0.27</td>
+              </tr>
+              <tr>
+                <td>前端框架</td>
+                <td>ZUI</td>
+                <td>v1.10.0</td>
+              </tr>
+              <tr>
+                <td>JavaScript库</td>
+                <td>jQuery</td>
+                <td>v1.12.4</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</div>
+</div>
+
+<script>
+  $('#dashboard').dashboard({draggable: true});
+
+
+
+
+
+</script>
+
+</body>
+</html>
